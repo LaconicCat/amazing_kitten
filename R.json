@@ -1,0 +1,33 @@
+{
+    "images" : [
+        {"name": "bg1", "url" : "R/images/bg3.jpg"},
+        {"name": "bg2", "url" : "R/images/bg5.jpg"},
+        {"name": "a0", "url" : "R/images/a0.png"},
+        {"name": "a1", "url" : "R/images/a1.png"},
+        {"name": "a2", "url" : "R/images/a2.png"},
+        {"name": "a3", "url" : "R/images/a3.png"},
+        {"name": "a4", "url" : "R/images/a4.png"},
+        {"name": "a5", "url" : "R/images/a5.png"},
+        {"name": "a6", "url" : "R/images/a6.png"},
+        {"name": "a7", "url" : "R/images/a7.png"},
+        {"name": "a8", "url" : "R/images/a8.png"},
+        {"name": "a9", "url" : "R/images/a9.png"},
+        {"name": "a10", "url" : "R/images/a10.png"},
+        {"name": "a11", "url" : "R/images/a11.png"},
+        {"name": "a12", "url" : "R/images/a9.png"},
+        {"name": "boom", "url" : "R/images/boom.png"},
+        {"name": "i0", "url" : "R/images/i0.png"},
+        {"name": "i1", "url" : "R/images/i1.png"},
+        {"name": "i2", "url" : "R/images/i2.png"},
+        {"name": "i3", "url" : "R/images/i3.png"},
+        {"name": "i4", "url" : "R/images/i4.png"},
+        {"name": "i5", "url" : "R/images/i5.png"},
+        {"name": "i6", "url" : "R/images/i6.png"},
+        {"name": "i7", "url" : "R/images/i7.png"},
+        {"name": "i8", "url" : "R/images/i8.png"},
+        {"name": "i9", "url" : "R/images/i9.png"},
+        {"name": "i10", "url" : "R/images/i10.png"},
+        {"name": "i11", "url" : "R/images/i11.png"},
+        {"name": "i12", "url" : "R/images/i12.png"}
+    ]
+}
