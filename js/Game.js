@@ -26,8 +26,8 @@
             //我们封装的回调函数，这里表示全部资源加载完毕
             self.start();
         });
-        
-        console.log(this.ratio);
+        //事件预约队列
+        this.appointments = [];
     }
     //初始化，设置画布的宽高
     Game.prototype.init = function(){
@@ -100,6 +100,22 @@
             self.ctx.fillText("FNO:" + self.fno, 10*game.ratio, 20*game.ratio);
             //这个render里边包含精灵的update和render
             self.map.render();
+
+            //执行事件注册器中的事件
+            self.appointments.forEach(item=>{
+                if(item.frame === self.fno){
+                    item.fn();
+                }
+            });
+
+            //下面的语句都是测试用的
+            //codetable中打印arr
+            for(var i = 0; i < 7; i++){
+                for(var j = 0; j < 7; j++){
+                    document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
+                    document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
+                }
+            }
         },20);
     }
 })();

@@ -3,16 +3,20 @@
     var Map = window.Map = function(row, col, type){
         //存储一个数字标志(精灵类型)的地图，并不是真的精灵。
         this.code = [
-            [0,1,2,3,4,5,6],
-            [1,2,3,4,5,6,0],
-            [2,3,4,5,6,0,1],
-            [3,4,5,6,0,1,2],
-            [4,5,6,0,1,2,3],
-            [5,6,0,1,2,3,4],
-            [6,0,1,2,3,4,5]
+            [1,1,2,3,4,3,6],
+            [1,2,3,3,3,3,3],
+            [1,2,4,5,6,3,1],
+            [3,2,5,6,0,3,2],
+            [4,2,6,0,1,2,3],
+            [5,6,0,0,0,3,4],
+            [6,0,1,0,3,4,5]
         ];
         //这个矩阵也是7*7，存放真正精灵的
         this.sprites = [[],[],[],[],[],[],[]];
+        //临时小精灵数组，用来渲染下落
+        this.temparr = [];
+        //应该下落多少行
+        this.needToBeDropDown = [[],[],[],[],[],[],[]];
         //实例化地图的时候，随机选7个参演选手
         var sArr = ["i0","i1","i2","i3","i4","i5","i6","i7","i8","i9","i10","i11","i12"];
         //随机七个样本
@@ -36,14 +40,168 @@
         var paddingBottom = game.canvas.height/2 - spriteW * 3.5;// padding bottom
         var baseY = game.canvas.height - spriteW * 7 - paddingBottom;
 
+        game.ctx.save();
         game.ctx.fillStyle = "rgba(255,255,255,0.6)";
         game.ctx.fillRect(baseX, baseY - 5*game.ratio, spriteW*7, spriteW*7);
-
+        game.ctx.restore();
+        //渲染更新小精灵
         for (let i = 0; i < 7; i++) {
             for (var j = 0; j < 7; j++) {
                 this.sprites[i][j].update();
                 this.sprites[i][j].render();
             }            
         }
+        this.temparr.forEach(item=>{
+            item.update();
+            item.render();
+        })
+    }
+
+    //检查是否能消除，返回一个可以消除的未知数组，
+    //形如[{"row": 0, "col": 0},{}...]
+    Map.prototype.check = function(){
+        var arr = [].concat(this.code);
+        arr.push([]);
+        var result1 = [];
+        for(row = 0; row < 7; row ++){
+            var i = 0;
+            var j = 1;
+            while(i < 7){
+                if(arr[row][i] != arr[row][j]){
+                    if(j - i >= 3){
+                        for (let m = i; m <= j - 1; m++) {
+                            result1.push({"row":row, "col":m});
+                        }
+                    }
+                    i = j;
+                }
+                j++;                
+            }
+        }
+        var result2 = [];
+        for(col = 0; col < 7; col ++){
+            var i = 0;
+            var j = 1;
+            while(i < 7){
+                if(arr[i][col] != arr[j][col]){
+                    if(j - i >= 3){
+                        for (let m = i; m <= j - 1; m++) {
+                            var isExist = false;
+                            result1.map(item=>{
+                                if(item.row == m && item.col == col){
+                                    isExist = true;
+                                }
+                            })
+                            !isExist && result2.push({"row":m, "col":col});
+                        }
+                    }
+                    i = j;
+                }
+                j++;
+            }
+        }
+        var allresult = result1.concat(result2);
+        return allresult;
+    }
+    //消除,接受一个数组[{"row": 0, "col": 0},{}...]
+    Map.prototype.eliminate = function(arr){
+        var self = this;
+        arr.map(item=>{
+            //爆炸
+            self.sprites[item.row][item.col].boom();
+            //设置这个位置为-1
+            self.code[item.row][item.col] = "";
+        });
+        let currentFno = game.fno;
+
+        //等40帧之后再下落；
+        game.appointments.push({
+            frame: currentFno + 60, 
+            fn:function(){
+                game.map.dropDown();
+            }
+        });
+    }
+    //下落方法
+    Map.prototype.dropDown = function(){
+        //统计每个元素下落多少行
+        for(let row = 0; row <= 5; row ++){
+            for(let col = 0; col < 7; col++){
+                //看看这个元素是不是空，如果是空不需要下落 0
+                if(this.code[row][col] === ""){
+                    this.needToBeDropDown[row][col] = 0;
+                } else {
+                    let num = 0;
+                    for(i = row + 1; i < 7; i++){
+                        if(this.code[i][col] === "") num ++;
+                    }
+                    this.needToBeDropDown[row][col] = num;
+                }
+            }
+        }
+        //至此我们已经统计完毕，然后发出命令
+        for(let row = 0; row <= 5; row++){
+            for(let col = 0; col <= 6; col++){
+                let dropFrames = this.needToBeDropDown[row][col]*10 + 1;
+                this.sprites[row][col].moveTo(row + this.needToBeDropDown[row][col], col, dropFrames);
+            }
+        }
+
+        var transposedCode = transpose(this.code);
+        for(let i = transposedCode.length - 1; i >= 0; i--){
+            for(let j = transposedCode[i].length - 1; j >= 0; j--){
+                if(transposedCode[i][j] === ""){
+                    transposedCode[i].splice(j,1);
+                }
+            }
+        }
+        for(let i = 0; i < 7; i++){
+            for(let j = 0; j < 7; j++){
+                if(transposedCode[i][j] === undefined){
+                    transposedCode[i].unshift("");
+                }
+            }
+        }
+        this.code = transpose(transposedCode);
+        for(let i = 0; i < 7; i++){
+            for(let j = 0; j < 7; j++){
+                if(this.code[i][j] === ""){
+                    //让数组推入新元素
+                    var type = _.random(0, 6);
+                    transposedCode[i].unshift(type);
+                    //新元素放入临时的小精灵演员数组,moveTo()
+                    var newSprite = new Sprite(-6, j, this.imageNameArr[type], this.image1NameArr[type]);
+                    this.temparr.push(newSprite);
+                    newSprite.moveTo(i, j, 80);
+                    this.code[i][j] = type;
+                }
+            }
+        }
+        //等60帧之后再重置；
+        let currentFno = game.fno;
+        game.appointments.push({
+            frame: currentFno + 80, 
+            fn:function(){
+                game.map.createSpritesByCode(); 
+                game.map.temparr = [];  
+                var result = game.map.check();
+                game.map.eliminate(result);  
+            }
+        });
+    }
+
+    //将矩阵转置
+    function transpose(arr){
+        var _colnum = arr[0].length;
+        var result = []
+        for(var i = 0; i < _colnum; i++){
+            result.push([]);
+        }
+        for(var i = 0; i < arr.length; i++){
+            for(var j = 0; j < _colnum; j++){
+                result[j][i] = arr[i][j];
+            }
+        }
+        return result;
     }
 })();
