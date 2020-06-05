@@ -28,6 +28,7 @@
         });
         //事件预约队列
         this.appointments = [];
+        this.callbacks = {};
     }
     //初始化，设置画布的宽高
     Game.prototype.init = function(){
@@ -85,6 +86,8 @@
     //开始游戏
     Game.prototype.start = function(){
         var self = this;
+        //状态机
+        this.fsm = "A"; //A静稳状态 B检查消除 C消除下落
         //实例化地图、渲染地图
         self.map = new Map();
         //设置定时器
@@ -93,20 +96,59 @@
             self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
             //画背景，不运动
             self.ctx.drawImage(self.R["bg1"], 0, 0, game.canvas.width, game.canvas.height);
+            
             //帧编号
             self.fno ++;
             self.ctx.font = 16 * game.ratio + "px consolas";
             self.ctx.textAlign = "left";
             self.ctx.fillText("FNO:" + self.fno, 10*game.ratio, 20*game.ratio);
+            self.ctx.fillText("FSM:" + self.fsm, 10*game.ratio, 40*game.ratio);
             //这个render里边包含精灵的update和render
             self.map.render();
 
             //执行事件注册器中的事件
-            self.appointments.forEach(item=>{
-                if(item.frame === self.fno){
-                    item.fn();
-                }
-            });
+            if(self.callbacks.hasOwnProperty(self.fno.toString())){
+                self.callbacks[self.fno.toString()]();
+                //这件事做完之后，删除这个事件
+                delete self.callbacks[self.fno.toString()];
+            }
+
+            //根据有限状态机，来决定作什么 A静稳状态 B检查消除 C消除下落
+            switch(self.fsm){
+                case "A":
+                    self.registCallback(40, function(){
+                        self.fsm = "B";
+                    });
+                    break;
+                case "B":
+                    if(self.map.check().length !== 0){
+                        self.fsm = "C";
+                    } else {
+                        self.fsm = "A";
+                    }
+                    break;
+                case "C":
+                    self.map.eliminate();
+                    self.fsm = "动画状态C";
+                    self.registCallback(40, function(){
+                        self.fsm = "D";
+                    });
+                    break;
+                case "D":
+                    self.map.dropDown();
+                    self.fsm = "动画状态D";
+                    self.registCallback(40, function(){
+                        self.fsm = "E";
+                    });
+                    break;
+                case "E":
+                    self.map.newSprites();
+                    self.fsm = "动画状态E";
+                    self.registCallback(40, function(){
+                        self.fsm = "B";
+                    });
+                    break;
+            }
 
             //下面的语句都是测试用的
             //codetable中打印arr
@@ -117,5 +159,9 @@
                 }
             }
         },20);
+    }
+
+    Game.prototype.registCallback = function(howManyFramesLater, fn){
+        this.callbacks[this.fno + howManyFramesLater] = fn;
     }
 })();

@@ -104,23 +104,19 @@
         return allresult;
     }
     //消除,接受一个数组[{"row": 0, "col": 0},{}...]
-    Map.prototype.eliminate = function(arr){
+    Map.prototype.eliminate = function(){
+        this.temparr = [];
         var self = this;
-        arr.map(item=>{
+        _.each(this.check(), function(item){
             //爆炸
             self.sprites[item.row][item.col].boom();
-            //设置这个位置为-1
+            //设置这个位置为a
             self.code[item.row][item.col] = "";
         });
-        let currentFno = game.fno;
 
-        //等40帧之后再下落；
-        game.appointments.push({
-            frame: currentFno + 60, 
-            fn:function(){
-                game.map.dropDown();
-            }
-        });
+        // game.registCallback(50, function(){
+        //     game.map.dropDown();
+        // });
     }
     //下落方法
     Map.prototype.dropDown = function(){
@@ -142,12 +138,13 @@
         //至此我们已经统计完毕，然后发出命令
         for(let row = 0; row <= 5; row++){
             for(let col = 0; col <= 6; col++){
-                let dropFrames = this.needToBeDropDown[row][col]*10 + 1;
-                this.sprites[row][col].moveTo(row + this.needToBeDropDown[row][col], col, dropFrames);
+                this.sprites[row][col].moveTo(row + this.needToBeDropDown[row][col], col, 20);
             }
         }
+    }
 
-        var transposedCode = transpose(this.code);
+    Map.prototype.newSprites = function(){
+        let transposedCode = transpose(this.code);
         for(let i = transposedCode.length - 1; i >= 0; i--){
             for(let j = transposedCode[i].length - 1; j >= 0; j--){
                 if(transposedCode[i][j] === ""){
@@ -171,22 +168,14 @@
                     transposedCode[i].unshift(type);
                     //新元素放入临时的小精灵演员数组,moveTo()
                     var newSprite = new Sprite(-6, j, this.imageNameArr[type], this.image1NameArr[type]);
-                    this.temparr.push(newSprite);
-                    newSprite.moveTo(i, j, 80);
+                    game.map.temparr.push(newSprite);
+                    newSprite.moveTo(i, j, 20);
                     this.code[i][j] = type;
                 }
             }
         }
-        //等60帧之后再重置；
-        let currentFno = game.fno;
-        game.appointments.push({
-            frame: currentFno + 80, 
-            fn:function(){
-                game.map.createSpritesByCode(); 
-                game.map.temparr = [];  
-                var result = game.map.check();
-                game.map.eliminate(result);  
-            }
+        game.registCallback(41, function(){
+            game.map.createSpritesByCode();
         });
     }
 

@@ -23,6 +23,11 @@
         }
         button {
             font-size: 1rem;
+            background-color:aquamarine;
+            color: darkolivegreen;
+            border: black;
+            border-radius: 5px;
+            padding: 5px;
         }
         #codeTable {
             position: absolute;
@@ -77,25 +82,8 @@
             "canvasid" : "#mycanvas",
             "Rjsonurl" : "R.json"
         });
-        let currentFno = game.fno;
-        game.appointments.push({
-            frame: currentFno + 30, 
-            fn:function(){
-                var result = game.map.check();
-                game.map.eliminate(result);  
-            }
-        });
         document.getElementById("btn3").onclick = function(){
             game.start();
-            game.appointments = [];
-            game.fno = 0;
-            game.appointments.push({
-                frame: currentFno + 60, 
-                fn:function(){
-                    var result = game.map.check();
-                    game.map.eliminate(result);  
-                }
-            });
         }
     </script>
 </body>

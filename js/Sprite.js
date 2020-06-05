@@ -41,7 +41,7 @@
         }
         //如果在爆炸
         if(this.isBoom){
-            if(game.fno % 8 === 0 && this.boomStep < 7){
+            if(game.fno % 5 === 0 && this.boomStep < 7){
                 this.boomStep++;
             }
             if(this.boomStep > 6){
@@ -63,7 +63,7 @@
         //设置moveNo
         this.moveNo = duringFrames;
     }
-    Sprite.prototype.boom = function(){
+    Sprite.prototype.boom = function(callback){
         this.isBoom = true;
     }
     //辅助函数，计算xy
