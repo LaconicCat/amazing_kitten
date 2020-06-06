@@ -120,6 +120,7 @@
     }
     //消除,接受一个数组[{"row": 0, "col": 0},{}...]
     Map.prototype.eliminate = function(callback){
+        game.Sound["eliminate"].play();
         this.temparr = [];
         var self = this;
         _.each(this.check(), function(item){
@@ -164,6 +165,7 @@
     }
 
     Map.prototype.newSprites = function(num,callback){
+        game.Sound["newsprites"].play();
         let transposedCode = transpose(this.code);
         for(let i = transposedCode.length - 1; i >= 0; i--){
             for(let j = transposedCode[i].length - 1; j >= 0; j--){

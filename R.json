@@ -35,6 +35,8 @@
     "sound":[
         {"name": "exchange_fail", "url" : "R/sound/exchange_success.mp3"},
         {"name": "exchange_success", "url" : "R/sound/exchange_success.ogg"},
-        {"name": "background", "url":"R/sound/background.ogg"}
+        {"name": "background", "url":"R/sound/background.ogg"},
+        {"name": "eliminate", "url":"R/sound/eliminate.mp3"},
+        {"name": "newsprites", "url":"R/sound/newsprites.mp3"}
     ]
 }
