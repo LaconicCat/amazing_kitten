@@ -116,6 +116,7 @@
             }
         }
         var allresult = result1.concat(result2);
+        console.log(allresult);
         return allresult;
     }
     //消除,接受一个数组[{"row": 0, "col": 0},{}...]
@@ -124,13 +125,13 @@
         game.Sound["eliminate"].play();
         this.temparr = [];
         var self = this;
+        game.score += this.check().length * 10;
         _.each(this.check(), function(item){
             //爆炸
             self.sprites[item.row][item.col].boom(callback);
             //设置这个位置为a
             self.code[item.row][item.col] = "";
         });
-
         // game.registCallback(50, function(){
         //     game.map.dropDown();
         // });

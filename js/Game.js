@@ -100,8 +100,8 @@
         //状态机
         this.fsm = "Paused"; //A静稳状态 B检查消除 C消除下落
         //实例化地图、渲染地图
-        
         self.map = new Map();
+        this.score = 0;
         
         //设置定时器
         this.timer = setInterval(function(){
@@ -117,6 +117,7 @@
             self.ctx.textAlign = "left";
             self.ctx.fillText("FNO:" + self.fno, 10*game.ratio, 20*game.ratio);
             self.ctx.fillText("FSM:" + self.fsm, 10*game.ratio, 40*game.ratio);
+            self.ctx.fillText("SCORE:" + self.score, 10*game.ratio, 60*game.ratio);
             //这个render里边包含精灵的update和render
             self.map.render();
 
@@ -174,13 +175,11 @@
 
     Game.prototype.bindEvent = function(){
         var self = this;
-
+        
         this.canvas.addEventListener("touchstart", function(event){
             if(self.fsm == "Paused"){
                 self.fsm = "Check";
-                self.Sound["background"].load();
                 self.Sound["background"].play();
-                self.Sound["background"].loop = "loop"; 
             } 
             //如果不在Frozen状态，那么点击是无效的。
             if(self.fsm != "Frozen") return;
@@ -207,6 +206,7 @@
         self.canvas.removeEventListener("touchmove", toucheMoveHandler, true);
 
         function toucheMoveHandler(event){
+            
             if(self.fsm != "Frozen") return;
             var startCol = self.startCol;
             var startRow = self.startRow;
@@ -228,6 +228,11 @@
         }
         
         this.canvas.onmousedown = function(event){
+            if(self.fsm == "Paused"){
+                self.fsm = "Check";
+                self.Sound["background"].play();
+                self.Sound["background"].loop = "loop";
+            } 
             //如果不在Frozen状态，那么点击是无效的。
             if(self.fsm != "Frozen") return;
             //判断当前鼠标在那个元素上
@@ -262,5 +267,10 @@
         this.canvas.onmouseup = function(event){
             self.canvas.onmousemove = null;
         }
+
+        document.addEventListener("WeixinJSBridgeReady", function () {
+            game.Sound["background"].play();
+            game.Sound["background"].loop = "loop";
+        }, false);
     }
 })();
