@@ -98,12 +98,11 @@
     Game.prototype.start = function(){
         var self = this;
         //状态机
-        this.fsm = "Check"; //A静稳状态 B检查消除 C消除下落
+        this.fsm = "Paused"; //A静稳状态 B检查消除 C消除下落
         //实例化地图、渲染地图
+        
         self.map = new Map();
         
-        this.Sound["background"].play();
-        this.Sound["background"].loop = "loop";
         //设置定时器
         this.timer = setInterval(function(){
             //清屏
@@ -154,6 +153,10 @@
                     break;
             }
 
+            if(self.fsm == "Paused"){
+                self.ctx.drawImage(self.R["paused"], game.baseX, game.baseY, game.canvas.width - 10, game.canvas.width * 0.85);
+            }
+
             // 下面的语句都是测试用的
             // codetable中打印arr
             // for(var i = 0; i < 7; i++){
@@ -173,12 +176,17 @@
         var self = this;
 
         this.canvas.addEventListener("touchstart", function(event){
+            if(self.fsm == "Paused"){
+                self.fsm = "Check";
+                self.Sound["background"].load();
+                self.Sound["background"].play();
+                self.Sound["background"].loop = "loop"; 
+            } 
             //如果不在Frozen状态，那么点击是无效的。
             if(self.fsm != "Frozen") return;
             //判断当前鼠标在那个元素上
             var x = event.touches[0].clientX * self.ratio;
             var y = event.touches[0].clientY * self.ratio;
-            console.log(x,y);
             self.squareW = self.spriteW * 7;
             if(x > self.baseX && x < self.baseX + self.squareW && y > self.baseY && y < self.baseY + self.squareW){
                 self.startCol = Math.floor((x  - self.baseX) / self.spriteW );

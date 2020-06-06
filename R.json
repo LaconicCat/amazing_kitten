@@ -30,7 +30,8 @@
         {"name": "i11", "url" : "R/images/i11.png"},
         {"name": "i12", "url" : "R/images/i12.png"},
         {"name": "bottom", "url" : "R/images/bottom.png"},
-        {"name": "top", "url" : "R/images/top.png"}
+        {"name": "top", "url" : "R/images/top.png"},
+        {"name": "paused", "url" : "R/images/paused.png"}
     ],
     "sound":[
         {"name": "exchange_fail", "url" : "R/sound/exchange_success.mp3"},
