@@ -10,6 +10,7 @@
         this.isBoom = false;
         this.boomStep = 0;
         this.isHide = false;
+        this.isClicked = false;
         this.boomArr = [[0,0], [0,0], [0,1], [1,0], [1,1], [2,0], [2,1], [3,0]];
 
         //定一下基本位置
@@ -20,16 +21,19 @@
     }
     Sprite.prototype.render = function(){
         if(this.isHide) return;
-        if(!this.isBoom){
+        if(!this.isBoom && !this.isClicked &&!this.isMove){
             game.ctx.drawImage(game.R[this.imageName], this.x, this.y, this.spriteW, this.spriteW);             
-        } else {
+        } else if(this.isBoom) {
             game.ctx.drawImage(game.R["boom"], 128*this.boomArr[this.boomStep][1], 128*this.boomArr[this.boomStep][0], 128, 128, this.x, this.y - 10*game.ratio, this.spriteW, this.spriteW);
-            console.log(this.boomArr[this.boomStep][1],this.boomArr[this.boomStep][0]);
+        } else if(this.isClicked || this.isMove){
+            game.ctx.drawImage(game.R[this.image1Name], this.x, this.y, this.spriteW, this.spriteW);
         }
     }
     
     Sprite.prototype.update = function(){
-        //isMove 只要为tru，就会去
+        //isHide 只要为true，就取消更新！！
+        if(this.isHide) return;
+        
         if(this.isMove){
             this.x += this.dx;
             this.y += this.dy;
@@ -46,6 +50,8 @@
             }
             if(this.boomStep > 6){
                 this.isHide = true;
+                //执行回调函数
+                game.registCallback(10, this.callback);
             }
         }
     }
@@ -65,17 +71,14 @@
     }
     Sprite.prototype.boom = function(callback){
         this.isBoom = true;
+        this.callback = callback;
     }
     //辅助函数，计算xy
     function calcXYbyRowCol(row, col){
-        var baseX = 6 * game.ratio; //最左列元素padding left
-        var spriteW = (game.canvas.width - baseX*2)/7;
-        var paddingBottom = game.canvas.height/2 - spriteW * 3.5;//最下方padding bottom
-        var baseY = game.canvas.height - spriteW * 7 - paddingBottom;//最上行y值
         return{
-            "x": baseX + spriteW * col,
-            "y": baseY + spriteW * row,
-            "w": spriteW
+            "x": game.baseX + game.spriteW * col,
+            "y": game.baseY + game.spriteW * row,
+            "w": game.spriteW
         }
     }
 }

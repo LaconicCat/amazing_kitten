@@ -56,7 +56,7 @@
         <button id="btn3">new game</button>
     </div>
     <canvas id="mycanvas"></canvas>
-    <table id="codeTable">
+    <!-- <table id="codeTable">
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
@@ -73,7 +73,7 @@
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-    </table>
+    </table> -->
     <script type="text/javascript" src="js/Game.js"></script>
     <script type="text/javascript" src="js/Sprite.js"></script>
     <script type="text/javascript" src="js/Map.js"></script>
@@ -83,6 +83,7 @@
             "Rjsonurl" : "R.json"
         });
         document.getElementById("btn3").onclick = function(){
+            clearInterval(game.timer);
             game.start();
         }
     </script>

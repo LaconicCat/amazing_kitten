@@ -25,6 +25,8 @@
         this.loadAllResource(function(){
             //我们封装的回调函数，这里表示全部资源加载完毕
             self.start();
+            //绑定监听
+            self.bindEvent();
         });
         //事件预约队列
         this.appointments = [];
@@ -42,12 +44,17 @@
         this.canvas.style.height = height + "px";
         this.canvas.width = width * ratio;
         this.canvas.height = height * ratio;
+        this.baseX = 6 * this.ratio;
+        this.spriteW = (this.canvas.width - this.baseX*2)/7;
+        this.paddingBottom = this.canvas.height/2 - this.spriteW * 3.5;
+        this.baseY = this.canvas.height - this.spriteW * 7 - this.paddingBottom;
     }
     
     //读取资源
     Game.prototype.loadAllResource = function(callback){
         //准备一个R对象
         this.R = {};
+        this.Sound = {};
         var self = this; //备份
         //计数器
         var alreadyLoadNum = 0;
@@ -77,6 +84,10 @@
                         }
                     }
                 };
+                for(let i = 0; i < Robj.sound.length; i++){
+                    self.Sound[Robj.sound[i].name] = document.createElement("audio");
+                    self.Sound[Robj.sound[i].name].src = Robj.sound[i].url;
+                }
             }
         }
         xhr.open('get', this.Rjsonurl, true);
@@ -87,16 +98,20 @@
     Game.prototype.start = function(){
         var self = this;
         //状态机
-        this.fsm = "A"; //A静稳状态 B检查消除 C消除下落
+        this.fsm = "Frozen"; //A静稳状态 B检查消除 C消除下落
         //实例化地图、渲染地图
         self.map = new Map();
+        
+        this.Sound["background"].play();
+        this.Sound["background"].loop = "loop";
         //设置定时器
         this.timer = setInterval(function(){
             //清屏
             self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
             //画背景，不运动
             self.ctx.drawImage(self.R["bg1"], 0, 0, game.canvas.width, game.canvas.height);
-            
+            self.ctx.drawImage(self.R["bottom"], 0, game.canvas.height - game.canvas.width/2, game.canvas.width, game.canvas.width/2);
+            self.ctx.drawImage(self.R["top"], game.canvas.width * 0.75, game.baseY - game.canvas.width * 0.25, game.canvas.width * 0.2, game.canvas.width * 0.2);
             //帧编号
             self.fno ++;
             self.ctx.font = 16 * game.ratio + "px consolas";
@@ -107,61 +122,134 @@
             self.map.render();
 
             //执行事件注册器中的事件
-            if(self.callbacks.hasOwnProperty(self.fno.toString())){
-                self.callbacks[self.fno.toString()]();
+            if(self.callbacks.hasOwnProperty(self.fno)){
+                self.callbacks[self.fno]();
                 //这件事做完之后，删除这个事件
-                delete self.callbacks[self.fno.toString()];
+                delete self.callbacks[self.fno];
             }
 
             //根据有限状态机，来决定作什么 A静稳状态 B检查消除 C消除下落
             switch(self.fsm){
-                case "A":
-                    self.registCallback(40, function(){
-                        self.fsm = "B";
+                case "Frozen":
+                    self.registCallback(10, function(){
+                        self.fsm = "Check";
                     });
                     break;
-                case "B":
+                case "Check":
                     if(self.map.check().length !== 0){
-                        self.fsm = "C";
+                        self.fsm = "Burning";
                     } else {
-                        self.fsm = "A";
+                        self.fsm = "Frozen";
                     }
                     break;
-                case "C":
-                    self.map.eliminate();
-                    self.fsm = "动画状态C";
-                    self.registCallback(40, function(){
-                        self.fsm = "D";
-                    });
-                    break;
-                case "D":
-                    self.map.dropDown();
-                    self.fsm = "动画状态D";
-                    self.registCallback(40, function(){
-                        self.fsm = "E";
-                    });
-                    break;
-                case "E":
-                    self.map.newSprites();
-                    self.fsm = "动画状态E";
-                    self.registCallback(40, function(){
-                        self.fsm = "B";
+                case "Burning":
+                    self.fsm = "DropDown";
+                    self.map.eliminate(function(){
+                        self.map.dropDown(40, function(){
+                            self.map.newSprites(40, function(){
+                                self.fsm = "Check";
+                            });
+                        });
                     });
                     break;
             }
 
             //下面的语句都是测试用的
             //codetable中打印arr
-            for(var i = 0; i < 7; i++){
-                for(var j = 0; j < 7; j++){
-                    document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
-                    document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
-                }
-            }
+            // for(var i = 0; i < 7; i++){
+            //     for(var j = 0; j < 7; j++){
+            //         document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
+            //         document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
+            //     }
+            // }
         },20);
     }
 
     Game.prototype.registCallback = function(howManyFramesLater, fn){
         this.callbacks[this.fno + howManyFramesLater] = fn;
+    }
+
+    Game.prototype.bindEvent = function(){
+        var self = this;
+
+        this.canvas.addEventListener("touchstart", function(event){
+            //如果不在Frozen状态，那么点击是无效的。
+            if(self.fsm != "Frozen") return;
+            //判断当前鼠标在那个元素上
+            var x = event.touches[0].clientX * self.ratio;
+            var y = event.touches[0].clientY * self.ratio;
+            console.log(x,y);
+            self.squareW = self.spriteW * 7;
+            if(x > self.baseX && x < self.baseX + self.squareW && y > self.baseY && y < self.baseY + self.squareW){
+                self.startCol = Math.floor((x  - self.baseX) / self.spriteW );
+                self.startRow = Math.floor((y - self.baseY) / self.spriteW );
+                self.map.sprites[self.startRow][self.startCol].isClicked = true;
+                self.canvas.addEventListener("touchend", function(){
+                    self.map.sprites[self.startRow][self.startCol].isClicked = false;
+                },true);
+            }
+        }, true);
+
+        self.canvas.addEventListener("touchmove", function(event){
+            toucheMoveHandler(event);
+        },true);
+        
+        self.canvas.removeEventListener("touchmove", toucheMoveHandler, true);
+
+        function toucheMoveHandler(event){
+            var startCol = self.startCol;
+            var startRow = self.startRow;
+            var squareW = self.squareW;
+            var x = event.touches[0].clientX * self.ratio;
+            var y = event.touches[0].clientY * self.ratio;
+            if(x > self.baseX && x < self.baseX + squareW && y > self.baseY && y < self.baseY + squareW){
+                var targetCol = Math.floor((x  - self.baseX) / self.spriteW );
+                var targetRow = Math.floor((y - self.baseY) / self.spriteW );
+                //等待鼠标移动到旁边
+                if(
+                    startCol == targetCol && Math.abs(startRow - targetRow) == 1
+                    || startRow == targetRow && Math.abs(startCol - targetCol) == 1
+                ){
+                    self.map.exchange(startRow, startCol, targetRow, targetCol);
+                    self.canvas.removeEventListener("touchmove", toucheMoveHandler, true);
+                }
+            }
+        }
+        
+        this.canvas.onmousedown = function(event){
+            //如果不在Frozen状态，那么点击是无效的。
+            if(self.fsm != "Frozen") return;
+            //判断当前鼠标在那个元素上
+            var x = event.offsetX * self.ratio;
+            var y = event.offsetY * self.ratio;
+            var squareW = self.spriteW * 7;
+            if(x > self.baseX && x < self.baseX + squareW && y > self.baseY && y < self.baseY + squareW){
+                var startCol = Math.floor((x  - self.baseX) / self.spriteW );
+                var startRow = Math.floor((y - self.baseY) / self.spriteW );
+                self.map.sprites[startRow][startCol].isClicked = true;
+                self.canvas.onmouseup = function(){
+                    self.map.sprites[startRow][startCol].isClicked = false;
+                }
+            }
+            self.canvas.onmousemove = function(event){
+                var x = event.offsetX * self.ratio;
+                var y = event.offsetY * self.ratio;
+                if(x > self.baseX && x < self.baseX + squareW && y > self.baseY && y < self.baseY + squareW){
+                    var targetCol = Math.floor((x  - self.baseX) / self.spriteW );
+                    var targetRow = Math.floor((y - self.baseY) / self.spriteW );
+                    //等待鼠标移动到旁边
+                    if(
+                        startCol == targetCol && Math.abs(startRow - targetRow) == 1
+                        || startRow == targetRow && Math.abs(startCol - targetCol) == 1
+                    ){
+                        self.map.exchange(startRow, startCol, targetRow, targetCol);
+                        self.canvas.onmousemove = null;
+                    }
+                }
+            }
+        }
+        this.canvas.onmouseup = function(event){
+            self.canvas.onmousemove = null;
+        }
     }
 })();

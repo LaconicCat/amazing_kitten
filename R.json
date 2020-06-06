@@ -28,6 +28,13 @@
         {"name": "i9", "url" : "R/images/i9.png"},
         {"name": "i10", "url" : "R/images/i10.png"},
         {"name": "i11", "url" : "R/images/i11.png"},
-        {"name": "i12", "url" : "R/images/i12.png"}
+        {"name": "i12", "url" : "R/images/i12.png"},
+        {"name": "bottom", "url" : "R/images/bottom.png"},
+        {"name": "top", "url" : "R/images/top.png"}
+    ],
+    "sound":[
+        {"name": "exchange_fail", "url" : "R/sound/exchange_success.mp3"},
+        {"name": "exchange_success", "url" : "R/sound/exchange_success.ogg"},
+        {"name": "background", "url":"R/sound/background.ogg"}
     ]
 }

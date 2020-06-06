@@ -100,16 +100,31 @@
                 j++;
             }
         }
+        //统计每个元素下落多少行
+        for(let row = 0; row <= 5; row ++){
+            for(let col = 0; col < 7; col++){
+                //看看这个元素是不是空，如果是空不需要下落 0
+                if(this.code[row][col] === ""){
+                    this.needToBeDropDown[row][col] = 0;
+                } else {
+                    let num = 0;
+                    for(i = row + 1; i < 7; i++){
+                        if(this.code[i][col] === "") num ++;
+                    }
+                    this.needToBeDropDown[row][col] = num;
+                }
+            }
+        }
         var allresult = result1.concat(result2);
         return allresult;
     }
     //消除,接受一个数组[{"row": 0, "col": 0},{}...]
-    Map.prototype.eliminate = function(){
+    Map.prototype.eliminate = function(callback){
         this.temparr = [];
         var self = this;
         _.each(this.check(), function(item){
             //爆炸
-            self.sprites[item.row][item.col].boom();
+            self.sprites[item.row][item.col].boom(callback);
             //设置这个位置为a
             self.code[item.row][item.col] = "";
         });
@@ -119,7 +134,7 @@
         // });
     }
     //下落方法
-    Map.prototype.dropDown = function(){
+    Map.prototype.dropDown = function(num,callback){
         //统计每个元素下落多少行
         for(let row = 0; row <= 5; row ++){
             for(let col = 0; col < 7; col++){
@@ -138,12 +153,17 @@
         //至此我们已经统计完毕，然后发出命令
         for(let row = 0; row <= 5; row++){
             for(let col = 0; col <= 6; col++){
-                this.sprites[row][col].moveTo(row + this.needToBeDropDown[row][col], col, 20);
+                if(this.needToBeDropDown[row][col] !== 0){
+                    this.sprites[row][col].moveTo(row + this.needToBeDropDown[row][col], col, 20);
+                }
             }
         }
+        game.registCallback(num,function(){
+            callback();
+        });
     }
 
-    Map.prototype.newSprites = function(){
+    Map.prototype.newSprites = function(num,callback){
         let transposedCode = transpose(this.code);
         for(let i = transposedCode.length - 1; i >= 0; i--){
             for(let j = transposedCode[i].length - 1; j >= 0; j--){
@@ -168,14 +188,44 @@
                     transposedCode[i].unshift(type);
                     //新元素放入临时的小精灵演员数组,moveTo()
                     var newSprite = new Sprite(-6, j, this.imageNameArr[type], this.image1NameArr[type]);
+                    newSprite.isClicked = true;
                     game.map.temparr.push(newSprite);
                     newSprite.moveTo(i, j, 20);
                     this.code[i][j] = type;
                 }
             }
         }
-        game.registCallback(41, function(){
+        game.registCallback(num, function(){
+            callback();
+            game.map.temparr = [];
             game.map.createSpritesByCode();
+        });
+    }
+
+    Map.prototype.exchange = function(startRow, startCol, targetRow, targetCol){
+        console.log("Exchange: 你正在从" + startRow + " " + startCol + "滑动到" + targetRow + " " + targetCol);
+        this.sprites[startRow][startCol].moveTo(targetRow, targetCol, 10);
+        this.sprites[targetRow][targetCol].moveTo(startRow, startCol, 10);
+        
+        var self = this;
+        game.registCallback(10, function(){
+            let temp = self.code[startRow][startCol];
+            self.code[startRow][startCol] = self.code[targetRow][targetCol];
+            self.code[targetRow][targetCol] = temp;
+            //此时check;
+            if(self.check().length == 0){
+                game.Sound["exchange_fail"].play();
+                //滑动失败
+                self.sprites[startRow][startCol].moveTo(startRow, startCol, 10);
+                self.sprites[targetRow][targetCol].moveTo(targetRow, targetCol, 10);
+                let temp = self.code[startRow][startCol];
+                self.code[startRow][startCol] = self.code[targetRow][targetCol];
+                self.code[targetRow][targetCol] = temp;
+            } else {
+                //成功
+                game.Sound["exchange_success"].play();
+                self.createSpritesByCode();
+            }
         });
     }
 
