@@ -107,6 +107,7 @@
                 this.map.code[i][j] = _.random(0, 6);
             }
         }
+        this.map.createSpritesByCode();
         
         //设置定时器
         this.timer = setInterval(function(){
@@ -163,14 +164,14 @@
                 self.ctx.drawImage(self.R["paused"], game.baseX, game.baseY, game.canvas.width - 10, game.canvas.width * 0.85);
             }
 
-            // 下面的语句都是测试用的
-            // codetable中打印arr
-            // for(var i = 0; i < 7; i++){
-            //     for(var j = 0; j < 7; j++){
-            //         document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
-            //         document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
-            //     }
-            // }
+            // 下面的语句都是测试用的 codetable中打印arr
+            
+            for(var i = 0; i < 7; i++){
+                for(var j = 0; j < 7; j++){
+                    document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
+                    document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
+                }
+            }
         },20);
     }
 
