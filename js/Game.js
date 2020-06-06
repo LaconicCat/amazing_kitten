@@ -166,12 +166,12 @@
 
             // 下面的语句都是测试用的 codetable中打印arr
             
-            for(var i = 0; i < 7; i++){
-                for(var j = 0; j < 7; j++){
-                    document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
-                    document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
-                }
-            }
+            // for(var i = 0; i < 7; i++){
+            //     for(var j = 0; j < 7; j++){
+            //         document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
+            //         document.getElementById("needToDropNumberTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.needToBeDropDown[i][j] !== undefined ? self.map.needToBeDropDown[i][j] : "";
+            //     }
+            // }
         },20);
     }
 
