@@ -102,6 +102,11 @@
         //实例化地图、渲染地图
         self.map = new Map();
         this.score = 0;
+        for(var i = 0; i < 7; i++){
+            for(var j= 0; j < 7; j ++){
+                this.map.code[i][j] = _.random(0, 6);
+            }
+        }
         
         //设置定时器
         this.timer = setInterval(function(){
