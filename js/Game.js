@@ -98,7 +98,7 @@
     Game.prototype.start = function(){
         var self = this;
         //状态机
-        this.fsm = "Frozen"; //A静稳状态 B检查消除 C消除下落
+        this.fsm = "Check"; //A静稳状态 B检查消除 C消除下落
         //实例化地图、渲染地图
         self.map = new Map();
         
@@ -131,9 +131,9 @@
             //根据有限状态机，来决定作什么 A静稳状态 B检查消除 C消除下落
             switch(self.fsm){
                 case "Frozen":
-                    self.registCallback(10, function(){
-                        self.fsm = "Check";
-                    });
+                    // self.registCallback(20, function(){
+                    //     self.fsm = "Check";
+                    // });
                     break;
                 case "Check":
                     if(self.map.check().length !== 0){
@@ -145,7 +145,7 @@
                 case "Burning":
                     self.fsm = "DropDown";
                     self.map.eliminate(function(){
-                        self.map.dropDown(40, function(){
+                        self.map.dropDown(20, function(){
                             self.map.newSprites(40, function(){
                                 self.fsm = "Check";
                             });
@@ -154,8 +154,8 @@
                     break;
             }
 
-            //下面的语句都是测试用的
-            //codetable中打印arr
+            // 下面的语句都是测试用的
+            // codetable中打印arr
             // for(var i = 0; i < 7; i++){
             //     for(var j = 0; j < 7; j++){
             //         document.getElementById("codeTable").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].innerHTML = self.map.code[i][j];
@@ -190,13 +190,16 @@
             }
         }, true);
 
-        self.canvas.addEventListener("touchmove", function(event){
-            toucheMoveHandler(event);
-        },true);
+        if(self.fsm !== "DropDown" && self.fsm !== "Burning"){
+            self.canvas.addEventListener("touchmove", function(event){
+               toucheMoveHandler(event);
+           },true);
+        }
         
         self.canvas.removeEventListener("touchmove", toucheMoveHandler, true);
 
         function toucheMoveHandler(event){
+            if(self.fsm != "Frozen") return;
             var startCol = self.startCol;
             var startRow = self.startRow;
             var squareW = self.squareW;

@@ -203,10 +203,10 @@
     }
 
     Map.prototype.exchange = function(startRow, startCol, targetRow, targetCol){
+        game.fsm = "Exchanging";
         console.log("Exchange: 你正在从" + startRow + " " + startCol + "滑动到" + targetRow + " " + targetCol);
         this.sprites[startRow][startCol].moveTo(targetRow, targetCol, 10);
         this.sprites[targetRow][targetCol].moveTo(startRow, startCol, 10);
-        
         var self = this;
         game.registCallback(10, function(){
             let temp = self.code[startRow][startCol];
@@ -221,10 +221,14 @@
                 let temp = self.code[startRow][startCol];
                 self.code[startRow][startCol] = self.code[targetRow][targetCol];
                 self.code[targetRow][targetCol] = temp;
+                game.registCallback(10, function(){
+                    game.fsm = "Frozen";
+                });
             } else {
                 //成功
                 game.Sound["exchange_success"].play();
                 self.createSpritesByCode();
+                game.fsm= "Check"
             }
         });
     }
